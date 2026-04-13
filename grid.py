@@ -17,11 +17,11 @@ class Grid:
 
         self.nest = (self.size[0] // 2, self.size[1] // 2)
 
-    def fill_foodmap(self, amount=20):
+    def fill_foodmap(self, amount=5):
         for _ in range(amount):
             x = np.random.randint(1, self.size[0] - 1)
             y = np.random.randint(1, self.size[1] - 1)
 
-            self.foodmap[x, y] = np.random.uniform(0, 10)
+            self.foodmap[x, y] = np.random.uniform(5, 10)
 
     

@@ -124,8 +124,8 @@ class Ant:
             self.target = None
 
     def follow_pheromone(self, aPheromone, bPheromone, foodmap, nest):
-        sensor_dist = 5
-        sensor_angle = np.pi / 6 #30 degrees left and right
+        sensor_dist = 10
+        sensor_angle = np.pi / 4 #45 degrees left and right
         turn_strength = 0.3
 
         left_angle = self.theta - sensor_angle
@@ -134,7 +134,7 @@ class Ant:
 
         left_score = self.sample_angle(aPheromone, bPheromone, foodmap, nest, left_angle, sensor_dist)
         right_score = self.sample_angle(aPheromone, bPheromone, foodmap, nest, right_angle, sensor_dist)
-        front_score = self.sample_angle(aPheromone, bPheromone, foodmap, nest, forward_angle, sensor_dist)
+        #front_score = self.sample_angle(aPheromone, bPheromone, foodmap, nest, forward_angle, sensor_dist)
 
         #store score for all three sides and move towards the best
         #searching for food:
@@ -142,15 +142,16 @@ class Ant:
         #finding nest
         #aPheromone  + 1, bPheromone - 1
 
-        turn = 0.0 #how far to turn
-        if left_score > right_score and left_score > front_score:
-            turn -= turn_strength
-        elif right_score > front_score:
-            turn += turn_strength
-        else:
-            turn = 0.0
-        
-        self.theta += turn + np.random.uniform(-0.1, 0.1)
+        #turn = 0.0 #how far to turn
+        # if left_score > right_score and left_score > front_score:
+        #     turn -= turn_strength
+        # elif right_score > front_score:
+        #     turn += turn_strength
+        # else:
+        #     turn = 0.0
+        turn = turn_strength * (right_score - left_score)
+        #turn = np.clip(turn, -turn_strength, turn_strength)
+        self.theta += turn + np.random.uniform(-0.01, 0.01)
 
     def sample_angle(self, aPheromone, bPheromone, foodmap, nest, angle, sensor_dist):
         (x, y) = int(self.x), int(self.y)
@@ -163,11 +164,11 @@ class Ant:
         if not self.hasFood:
             #follow bPheromone and foodmap
             score += foodmap[dx, dy] * 2
-            score += bPheromone[dx, dy] * 5
+            score += bPheromone[dx, dy] * 8
             score -= aPheromone[dx, dy] * 0.3
 
         else:
-            score += aPheromone[dx, dy] * 3
+            score += aPheromone[dx, dy] * 8
             score -= bPheromone[dx, dy] * 0.2
             
             dist = (dx - nest[0]) ** 2 + (dy - nest[1]) ** 2

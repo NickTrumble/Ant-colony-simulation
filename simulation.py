@@ -65,9 +65,9 @@ class Simulation:
         
     def update_pheremones(self, ant):
         if ant.hasFood:
-            self.grid.bPheremone[int(ant.x), int(ant.y)] += 0.2
+            self.grid.bPheremone[int(ant.x), int(ant.y)] += 0.4
         else:
-            self.grid.aPheremone[int(ant.x), int(ant.y)] += 0.2
+            self.grid.aPheremone[int(ant.x), int(ant.y)] += 0.4
         
     def decrease_all_pheremones(self):
         self.grid.aPheremone = np.maximum(0, self.grid.aPheremone * .98)
