@@ -43,10 +43,10 @@ def main():
 
     
         sim.update_ants()
-        sim.render_ants(screen)
+        sim.render_objects(screen)
 
         pygame.display.flip()
-        pygame.time.wait(100)
+        pygame.time.wait(1)
             
 
 sim = Simulation(grid, 3)
@@ -54,28 +54,3 @@ for i in range(20):
     sim.add_ant(300, 200)
 
 main()
-
-
-#old locals - delete
-# (width, height) = (800, 600)
-# cells_wide = 50
-# cell_size = width // cells_wide 
-# box = (width - 2 * (cell_size), height - 2 * cell_size)
-# centre = (width // 2, height // 2)
-
-#old systme - not encapsulated
-# ants = []
-# ants.append(Ant(box, centre, cell_size))
-
-# #getting rid of grid - delete
-# def draw_grid():
-#     for i in range(cell_size, width - cell_size, cell_size):
-#         for j in range(cell_size, height - cell_size, cell_size):
-#             rect = pygame.Rect(i, j, cell_size, cell_size)
-#             pygame.draw.rect(screen, WHITE, rect, 1)
-
-# #old cell system - redo
-# def generate_food():
-#     (x, y) = (np.random.randint(0, cells_wide), np.random.randint(0, cells_wide * 3 / 4))
-#     apple = pygame.Rect(x * cell_size, y * cell_size,  cell_size, cell_size)
-#     pygame.draw.rect(screen, RED, apple, 1)
