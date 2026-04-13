@@ -51,6 +51,6 @@ def main():
 
 sim = Simulation(grid, 3)
 for i in range(20):
-    sim.add_ant(300, 200)
+    sim.add_ant()
 
 main()

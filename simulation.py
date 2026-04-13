@@ -7,8 +7,10 @@ class Simulation:
         self.grid = grid #access all inside grid
         self.ants = [] #access all inside ants
         self.step_size = step_size
+        self.rate = 0.1
 
-    def add_ant(self, x, y, col = (50, 30, 0)):
+    def add_ant(self,col = (50, 30, 0)):
+        x, y = self.grid.nest
         if self.validate_move((x, y)):
             self.ants.append(Ant((x, y), col))
             return
@@ -20,9 +22,10 @@ class Simulation:
         return pygame.Rect.collidepoint(self.grid.rect, (newX, newY))
     
     def render_objects(self, screen):
-        self.render_ants(screen)
         self.render_food(screen)
         self.render_pheremones(screen)
+        self.render_nest(screen)
+        self.render_ants(screen)
 
     def render_ants(self, screen):
         for ant in self.ants:
@@ -48,11 +51,19 @@ class Simulation:
             intensity = (0, np.clip(self.grid.foodmap[i, j] * 50, 0, 255),40)
             pygame.draw.circle(screen, intensity, (i + offset[0], j + offset[1]), 5)
 
+    def render_nest(self, screen):
+        nest = (self.grid.nest[0] + self.grid.xOff, self.grid.nest[1] + self.grid.yOff)
+        intensity = (100, 200, 50)
+        pygame.draw.circle(screen, intensity, nest, 8)
+
     def update_ants(self):
         for ant in self.ants:
-            ant.move(self.step_size, pygame.Rect(0, 0, self.grid.size[0], self.grid.size[1]), self.grid.foodmap, self.grid.nest)
+            ant.move(self.step_size, pygame.Rect(0, 0, self.grid.size[0], self.grid.size[1]), 
+                     self.grid.foodmap, self.grid.nest, self.grid.aPheremone, self.grid.bPheremone)
             self.update_pheremones(ant)
         self.decrease_all_pheremones()
+
+
         
     def update_pheremones(self, ant):
         if ant.hasFood:
@@ -61,8 +72,31 @@ class Simulation:
             self.grid.aPheremone[int(ant.x), int(ant.y)] += 1
         
     def decrease_all_pheremones(self):
-        self.grid.aPheremone = np.maximum(0, self.grid.aPheremone * .9)
-        self.grid.bPheremone = np.maximum(0, self.grid.bPheremone * .9)
+        self.grid.aPheremone = np.maximum(0, self.grid.aPheremone * .95)
+        self.grid.bPheremone = np.maximum(0, self.grid.bPheremone * .95)
 
         self.grid.aPheremone[self.grid.aPheremone < 0.01] = 0
         self.grid.bPheremone[self.grid.bPheremone < 0.01] = 0
+
+        self.grid.aPheremone = self.diffuse(self.grid.aPheremone, self.rate)
+        self.grid.bPheremone = self.diffuse(self.grid.bPheremone, self.rate)
+
+    def diffuse(self, pheromone, rate):
+        copy = pheromone.copy()
+        copy[1:-1, 1:-1] = (
+            rate * pheromone[1:-1, 1:-1] + 
+            (1 - rate) * (
+                copy[1:-1, 1:-1] +
+                copy[2:, 1:-1] +
+                copy[:-2, 1:-1] +
+                copy[1:-1, 2:] +
+                copy[1:-1, :-2]
+            ) / 5
+        )
+
+        copy[0, :] = 0
+        copy[-1, :] = 0
+        copy[:, 0] = 0
+        copy[:, -1] = 0
+
+        return copy
