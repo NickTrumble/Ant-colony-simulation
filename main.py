@@ -50,7 +50,7 @@ def main():
             
 
 sim = Simulation(grid, 3)
-for i in range(20):
+for i in range(50):
     sim.add_ant()
 
 main()

@@ -7,7 +7,7 @@ class Simulation:
         self.grid = grid #access all inside grid
         self.ants = [] #access all inside ants
         self.step_size = step_size
-        self.rate = 0.1
+        self.rate = 0.2
 
     def add_ant(self,col = (50, 30, 0)):
         x, y = self.grid.nest
@@ -33,8 +33,8 @@ class Simulation:
 
     def render_pheremones(self, screen):
         offset = (self.grid.xOff, self.grid.yOff)
-        aPheremones = np.argwhere(self.grid.aPheremone)
-        bPheremones = np.argwhere(self.grid.bPheremone)
+        aPheremones = np.argwhere(self.grid.aPheremone > 0.01)
+        bPheremones = np.argwhere(self.grid.bPheremone > 0.01)
 
         for i,j in aPheremones:
             intensity = int(np.clip(50 + 125 * self.grid.aPheremone[i, j] ** .7, 0, 255))
@@ -62,18 +62,16 @@ class Simulation:
                      self.grid.foodmap, self.grid.nest, self.grid.aPheremone, self.grid.bPheremone)
             self.update_pheremones(ant)
         self.decrease_all_pheremones()
-
-
         
     def update_pheremones(self, ant):
         if ant.hasFood:
-            self.grid.bPheremone[int(ant.x), int(ant.y)] += 1
+            self.grid.bPheremone[int(ant.x), int(ant.y)] += 0.2
         else:
-            self.grid.aPheremone[int(ant.x), int(ant.y)] += 1
+            self.grid.aPheremone[int(ant.x), int(ant.y)] += 0.2
         
     def decrease_all_pheremones(self):
-        self.grid.aPheremone = np.maximum(0, self.grid.aPheremone * .95)
-        self.grid.bPheremone = np.maximum(0, self.grid.bPheremone * .95)
+        self.grid.aPheremone = np.maximum(0, self.grid.aPheremone * .98)
+        self.grid.bPheremone = np.maximum(0, self.grid.bPheremone * .98)
 
         self.grid.aPheremone[self.grid.aPheremone < 0.01] = 0
         self.grid.bPheremone[self.grid.bPheremone < 0.01] = 0
@@ -84,8 +82,8 @@ class Simulation:
     def diffuse(self, pheromone, rate):
         copy = pheromone.copy()
         copy[1:-1, 1:-1] = (
-            rate * pheromone[1:-1, 1:-1] + 
-            (1 - rate) * (
+            (1 - rate) * pheromone[1:-1, 1:-1] + 
+            rate * (
                 copy[1:-1, 1:-1] +
                 copy[2:, 1:-1] +
                 copy[:-2, 1:-1] +

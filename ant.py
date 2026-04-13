@@ -41,7 +41,7 @@ class Ant:
     def next_location(self, step_size, foodmap, aPheremone, bPheremone, nest):
         self.follow_pheromone(aPheremone, bPheremone, foodmap, nest)
         if not self.hasFood:
-            self.search_for_food(foodmap)
+            self.search_radius(foodmap)
 
             if self.target is not None:
                 self.move_to_target()
@@ -53,10 +53,10 @@ class Ant:
         newY = self.y + step_size * np.sin(self.theta)
         return (newX, newY)
 
-    def pathfind_random(self):
-        newTheta = self.theta + np.random.rand() - 0.5
-        self.theta = (newTheta + 2 * np.pi) % (2 * np.pi)
-        return
+    # def pathfind_random(self):
+    #     newTheta = self.theta + np.random.rand() - 0.5
+    #     self.theta = (newTheta + 2 * np.pi) % (2 * np.pi)
+    #     return
 
     def render(self, screen, xOff, yOff):
         headCenter = (
@@ -80,43 +80,7 @@ class Ant:
         dx, dy = (self.target[0] - self.x, self.target[1] - self.y)
         self.theta = np.arctan2(dy, dx) + np.random.uniform(-0.5, 0.5)
 
-    def search_for_food(self, foodmap):
-        radius = 10
-        xmin = max(0, int(self.x - radius))
-        xmax = min(foodmap.shape[0], int(self.x + radius))
-        ymin = max(0, int(self.y - radius))
-        ymax = min(foodmap.shape[1], int(self.y + radius))
-
-        x, y = np.meshgrid(np.arange(xmin,xmax), np.arange(ymin,ymax), indexing='ij')
-        local_foodmap = foodmap[xmin:xmax, ymin:ymax]
-
-        if len(np.argwhere(local_foodmap)) == 0:
-            return
-
-        dist_squared = (x - self.x) ** 2 + (y - self.y) ** 2
-        dist = np.sqrt(dist_squared + 0.000001)
-        dot_product = (x - self.x) * np.cos(self.theta) + (y - self.y) * np.sin(self.theta)
-
-        #more attracted to closer things and in view
-        weighted_angle = np.clip(dot_product / (dist + 0.0001), 0, 1) ** 2
-        weighted_dist = 1 / (1 + dist_squared) 
-
-        score = local_foodmap * weighted_angle * weighted_dist # scores food based on distance and angles
-        score[dist > radius] = 0
-        flattened_score = score.flatten()
-        sum = np.sum(flattened_score)
-
-        if sum == 0:
-            self.target = None
-            return
-
-        probabilities = flattened_score / (sum)
-        flatindex = np.random.choice(len(flattened_score), p = probabilities)
-        index = np.unravel_index(flatindex, score.shape)
-
-        self.target = (index[0] + xmin, index[1] + ymin)
-
-    def search_radius(self, foodmap, radius = 5):
+    def search_radius(self, foodmap, radius = 15):
         x, y = int(self.x), int(self.y)
         xmin = max(x - radius, 0)
         xmax = min(x + radius, foodmap.shape[0] - 1)
@@ -136,9 +100,7 @@ class Ant:
                 best_dist = dist
                 best_index = (dx, dy)
 
-        self.target = best_index
-
-            
+        self.target = best_index        
 
     def take_food(self, foodmap, nest):
         x, y = int(self.x), int(self.y)
@@ -200,15 +162,51 @@ class Ant:
         score = 0.0
         if not self.hasFood:
             #follow bPheromone and foodmap
-            score += foodmap[dx, dy] * 8
-            score += bPheromone[dx, dy] * 4
-            score -= aPheromone[dx, dy] * 1
+            score += foodmap[dx, dy] * 2
+            score += bPheromone[dx, dy] * 5
+            score -= aPheromone[dx, dy] * 0.3
 
         else:
-            score += aPheromone[dx, dy] * 4
-            score -= bPheromone[dx, dy] * 0.5
+            score += aPheromone[dx, dy] * 3
+            score -= bPheromone[dx, dy] * 0.2
             
             dist = (dx - nest[0]) ** 2 + (dy - nest[1]) ** 2
-            score += 100.0 / (dist + 10.0)
+            score += 30.0 / (dist + 10.0)
 
         return score
+    
+    # def search_for_food(self, foodmap):
+    #     radius = 10
+    #     xmin = max(0, int(self.x - radius))
+    #     xmax = min(foodmap.shape[0], int(self.x + radius))
+    #     ymin = max(0, int(self.y - radius))
+    #     ymax = min(foodmap.shape[1], int(self.y + radius))
+
+    #     x, y = np.meshgrid(np.arange(xmin,xmax), np.arange(ymin,ymax), indexing='ij')
+    #     local_foodmap = foodmap[xmin:xmax, ymin:ymax]
+
+    #     if len(np.argwhere(local_foodmap)) == 0:
+    #         return
+
+    #     dist_squared = (x - self.x) ** 2 + (y - self.y) ** 2
+    #     dist = np.sqrt(dist_squared + 0.000001)
+    #     dot_product = (x - self.x) * np.cos(self.theta) + (y - self.y) * np.sin(self.theta)
+
+    #     #more attracted to closer things and in view
+    #     weighted_angle = np.clip(dot_product / (dist + 0.0001), 0, 1) ** 2
+    #     weighted_dist = 1 / (1 + dist_squared) 
+
+    #     score = local_foodmap * weighted_angle * weighted_dist # scores food based on distance and angles
+    #     score[dist > radius] = 0
+    #     flattened_score = score.flatten()
+    #     sum = np.sum(flattened_score)
+
+    #     if sum == 0:
+    #         self.target = None
+    #         return
+
+    #     probabilities = flattened_score / (sum)
+    #     flatindex = np.random.choice(len(flattened_score), p = probabilities)
+    #     index = np.unravel_index(flatindex, score.shape)
+
+    #     self.target = (index[0] + xmin, index[1] + ymin)
